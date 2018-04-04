@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using OpenQA.Selenium.PhantomJS;
 using OpenQA.Selenium.Support.UI;
 using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 
 namespace Yad2AdJump
 {
@@ -57,7 +58,8 @@ namespace Yad2AdJump
         {
 
             //set up a filestream
-            FileStream fs = new FileStream(AppDomain.CurrentDomain.BaseDirectory + @"timerserv.txt", FileMode.OpenOrCreate, FileAccess.Write);
+            //FileStream fs = new FileStream(AppDomain.CurrentDomain.BaseDirectory + @"timerserv.txt", FileMode.OpenOrCreate, FileAccess.Write);
+            FileStream fs = new FileStream(@"c: timerserv.txt", FileMode.OpenOrCreate, FileAccess.Write);
 
             //set up a streamwriter for adding text
             StreamWriter sw = new StreamWriter(fs);
@@ -82,15 +84,14 @@ namespace Yad2AdJump
         protected override void OnStart(string[] args)
         {
             WriteToFile("Starting Service");
+            BounceAd();
+            //// event handler
+            //timer.Elapsed += new ElapsedEventHandler(OnElapsedTime);
 
-            // event handler
-            timer.Elapsed += new ElapsedEventHandler(OnElapsedTime);
-
-            // a little over 4 hours
-            timer.Interval = 14500000;
-
-            // enable the timer
-            timer.Enabled = true;
+            //// a little over 4 hours
+            //timer.Interval = 14500000;
+            //// enable the timer
+            //timer.Enabled = true;
         }
 
 
@@ -116,54 +117,62 @@ namespace Yad2AdJump
         private void OnElapsedTime(object source, ElapsedEventArgs e)
         {
             WriteToFile("Another entry");
-
-            // path to phantom driver
-            const string PathToPhantonDriver = @"C:\Program Files (x86)\phantomjs-2.1.1-windows\bin";
-            // holds the url to reach
-            string url = string.Empty;
-
-
-            using (var driver = new PhantomJSDriver(PathToPhantonDriver))
-            {
-
-                url = @"https://il.investing.com/stock-screener/?sp=country::23|sector::a|industry::a|equityType::a%3Ceq_market_cap;";
-
-                driver.Navigate().GoToUrl(url);
-
-            }
+            // call the bounce ad method
+            BounceAd();
         }
 
 
 
 
 
-        private void JumpAd()
+        private void BounceAd()
         {
-            // path to phantom driver
-            const string PathToPhantonDriver = @"C:\Program Files (x86)\phantomjs-2.1.1-windows\bin";
-           
+
+            ChromeOptions options = new ChromeOptions();
+            options.AddArguments("user-data-dir=C:/Users/dell/AppData/Local/Google/Chrome/User Data");
+            options.AddArguments("--start-maximized");
 
 
-            using (var driver = new PhantomJSDriver(PathToPhantonDriver))
+            using (var driver = new ChromeDriver(options))
             {
-                
-                // url of yad2 personal area link
-                string personalAreaUrl = @"https://my.yad2.co.il/newOrder/index.php?action=personalAreaIndex";
+
+                //// url of yad2 personal area link
+                //string personalAreaUrl = @"https://my.yad2.co.il/newOrder/index.php?action=personalAreaIndex";
+                //// navigate to personal area
+                //driver.Navigate().GoToUrl(personalAreaUrl);
+
+
 
                 // in order to make this a more general purpose app consider starting at `personalAreaUrl`, 
-                // collect all the available ads and loop over them
+                // collect all the available ad types and loop over them
                 string url = @"https://my.yad2.co.il/newOrder/index.php?action=personalAreaFeed&CatID=3&SubCatID=0";
+
 
                 driver.Navigate().GoToUrl(url);
 
                 new WebDriverWait(driver, TimeSpan.FromSeconds(30)).Until<IWebElement>((t) =>
                 {
-                    // get the link to the ad
-                    IWebElement linkElement = t.FindElement(By.XPath("//*[@id='resultsTable']/tbody"));
+                    // get the link to the ads table //*[@id="feed"] //*[@id="feed"]/tbody
+                    IWebElement tableElement = t.FindElement(By.XPath("//*[@id='feed']"));
 
-                    if (linkElement.Displayed && linkElement.Enabled && linkElement.GetAttribute("aria-disabled") == null)
+                    if (tableElement.Displayed && tableElement.Enabled && tableElement.GetAttribute("aria-disabled") == null)
                     {
-                        return linkElement;
+
+                        IList<IWebElement> tableRow = tableElement.FindElements(By.XPath("//tr[contains(@class,'item')]"));
+
+                        // loop over the table rows
+                        foreach (IWebElement row in tableRow)
+                        {
+                            // click to expand the row
+                            //row.Click();
+
+                            driver.SwitchTo().Frame(1);
+                            // find the ad bounce link
+                            var bounceElem = driver.FindElement(By.XPath("//*[@id='bounceRatingOrderBtn']"));
+                            // click to bounce the ad.
+                            bounceElem.Click();
+                        }
+                        return tableElement;
                     }
                     return null;
                 });
