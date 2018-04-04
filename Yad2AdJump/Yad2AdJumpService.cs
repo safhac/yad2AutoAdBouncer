@@ -9,6 +9,9 @@ using System.Timers;
 using System.IO; 
 using System.Text;
 using System.Threading.Tasks;
+using OpenQA.Selenium.PhantomJS;
+using OpenQA.Selenium.Support.UI;
+using OpenQA.Selenium;
 
 namespace Yad2AdJump
 {
@@ -113,6 +116,58 @@ namespace Yad2AdJump
         private void OnElapsedTime(object source, ElapsedEventArgs e)
         {
             WriteToFile("Another entry");
+
+            // path to phantom driver
+            const string PathToPhantonDriver = @"C:\Program Files (x86)\phantomjs-2.1.1-windows\bin";
+            // holds the url to reach
+            string url = string.Empty;
+
+
+            using (var driver = new PhantomJSDriver(PathToPhantonDriver))
+            {
+
+                url = @"https://il.investing.com/stock-screener/?sp=country::23|sector::a|industry::a|equityType::a%3Ceq_market_cap;";
+
+                driver.Navigate().GoToUrl(url);
+
+            }
+        }
+
+
+
+
+
+        private void JumpAd()
+        {
+            // path to phantom driver
+            const string PathToPhantonDriver = @"C:\Program Files (x86)\phantomjs-2.1.1-windows\bin";
+           
+
+
+            using (var driver = new PhantomJSDriver(PathToPhantonDriver))
+            {
+                
+                // url of yad2 personal area link
+                string personalAreaUrl = @"https://my.yad2.co.il/newOrder/index.php?action=personalAreaIndex";
+
+                // in order to make this a more general purpose app consider starting at `personalAreaUrl`, 
+                // collect all the available ads and loop over them
+                string url = @"https://my.yad2.co.il/newOrder/index.php?action=personalAreaFeed&CatID=3&SubCatID=0";
+
+                driver.Navigate().GoToUrl(url);
+
+                new WebDriverWait(driver, TimeSpan.FromSeconds(30)).Until<IWebElement>((t) =>
+                {
+                    // get the link to the ad
+                    IWebElement linkElement = t.FindElement(By.XPath("//*[@id='resultsTable']/tbody"));
+
+                    if (linkElement.Displayed && linkElement.Enabled && linkElement.GetAttribute("aria-disabled") == null)
+                    {
+                        return linkElement;
+                    }
+                    return null;
+                });
+            }
         }
 
     }
