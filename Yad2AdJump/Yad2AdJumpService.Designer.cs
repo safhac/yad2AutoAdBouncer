@@ -1,6 +1,6 @@
 ﻿namespace Yad2AdJump
 {
-    partial class Service1
+    partial class Yad2AdJumpService
     {
         /// <summary> 
         /// Required designer variable.

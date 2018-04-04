@@ -14,12 +14,21 @@ namespace Yad2AdJump
         /// </summary>
         static void Main()
         {
+#if DEBUG
+            Yad2AdJumpService service = new Yad2AdJumpService();
+            service.OnDebug();
+            System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
+
+#else
+
+
             ServiceBase[] ServicesToRun;
             ServicesToRun = new ServiceBase[]
             {
-                new Service1()
+                new Yad2AdJumpService()
             };
             ServiceBase.Run(ServicesToRun);
+#endif
         }
     }
 }
