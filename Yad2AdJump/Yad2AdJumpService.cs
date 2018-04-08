@@ -51,7 +51,7 @@ namespace Yad2AdJump
 
             //set up a filestream
             //FileStream fs = new FileStream(AppDomain.CurrentDomain.BaseDirectory + @"timerserv.txt", FileMode.OpenOrCreate, FileAccess.Write);
-            FileStream fs = new FileStream(@"c: timerserv.txt", FileMode.OpenOrCreate, FileAccess.Write);
+            FileStream fs = new FileStream(@"timerserv.txt", FileMode.OpenOrCreate, FileAccess.Write);
 
             //set up a streamwriter for adding text
             StreamWriter sw = new StreamWriter(fs);
@@ -82,8 +82,9 @@ namespace Yad2AdJump
             // event handler
             timer.Elapsed += new ElapsedEventHandler(OnElapsedTime);
 
-            // a little over 4 hours
-            timer.Interval = 14500000;
+            // a little over 4 hours 14500000;
+            // every 12 hours
+            timer.Interval = 43200000;
             // enable the timer
             timer.Enabled = true;
         }

@@ -39,7 +39,7 @@
             // 
             // serviceInstaller1
             // 
-            this.serviceInstaller1.ServiceName = "Yad2 Ad Jumper";
+            this.serviceInstaller1.ServiceName = "Yad automatic ad bouncer";
             // 
             // ProjectInstaller
             // 
