@@ -1,22 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
-using System.Linq;
-using System.ServiceProcess;
-using System.Timers; 
-using System.IO; 
-using System.Text;
-using System.Threading.Tasks;
-using OpenQA.Selenium.PhantomJS;
-using OpenQA.Selenium.Support.UI;
-using OpenQA.Selenium;
+﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Support.UI;
+using System;
+using System.IO;
+using System.ServiceProcess;
+using System.Timers;
 
 namespace Yad2AdJump
 {
-    
+
 
     public partial class Yad2AdJumpService : ServiceBase
     {
@@ -84,14 +76,16 @@ namespace Yad2AdJump
         protected override void OnStart(string[] args)
         {
             WriteToFile("Starting Service");
-            BounceAd();
-            //// event handler
-            //timer.Elapsed += new ElapsedEventHandler(OnElapsedTime);
 
-            //// a little over 4 hours
-            //timer.Interval = 14500000;
-            //// enable the timer
-            //timer.Enabled = true;
+            //debug
+            //BounceAd();
+            // event handler
+            timer.Elapsed += new ElapsedEventHandler(OnElapsedTime);
+
+            // a little over 4 hours
+            timer.Interval = 14500000;
+            // enable the timer
+            timer.Enabled = true;
         }
 
 
@@ -145,34 +139,41 @@ namespace Yad2AdJump
 
                 // in order to make this a more general purpose app consider starting at `personalAreaUrl`, 
                 // collect all the available ad types and loop over them
-                string url = @"https://my.yad2.co.il/newOrder/index.php?action=personalAreaFeed&CatID=3&SubCatID=0";
+                // string url = @"https://my.yad2.co.il/newOrder/index.php?action=personalAreaFeed&CatID=3&SubCatID=0";
+
+                // lazy option 
+                // goto the specific frame url
+                string frameUrl = @"https://my.yad2.co.il/newOrder/index.php?action=personalAreaViewDetails&CatID=3&SubCatID=0&OrderID=35345021";
 
 
-                driver.Navigate().GoToUrl(url);
+
+                driver.Navigate().GoToUrl(frameUrl);
 
                 new WebDriverWait(driver, TimeSpan.FromSeconds(30)).Until<IWebElement>((t) =>
                 {
                     // get the link to the ads table //*[@id="feed"] //*[@id="feed"]/tbody
-                    IWebElement tableElement = t.FindElement(By.XPath("//*[@id='feed']"));
+                    IWebElement bounceButton = t.FindElement(By.XPath("//*[@id='bounceRatingOrderBtn']"));
 
-                    if (tableElement.Displayed && tableElement.Enabled && tableElement.GetAttribute("aria-disabled") == null)
+                    if (bounceButton.Displayed && bounceButton.Enabled && bounceButton.GetAttribute("aria-disabled") == null)
                     {
+                        bounceButton.Click();
+                        #region scrape iFrames
+                        //IList<IWebElement> tableRow = tableElement.FindElements(By.XPath("//tr[contains(@class,'item')]"));
 
-                        IList<IWebElement> tableRow = tableElement.FindElements(By.XPath("//tr[contains(@class,'item')]"));
+                        //// loop over the table rows
+                        //foreach (IWebElement row in tableRow)
+                        //{
+                        //    // click to expand the row
+                        //    //row.Click();
 
-                        // loop over the table rows
-                        foreach (IWebElement row in tableRow)
-                        {
-                            // click to expand the row
-                            //row.Click();
-
-                            driver.SwitchTo().Frame(1);
-                            // find the ad bounce link
-                            var bounceElem = driver.FindElement(By.XPath("//*[@id='bounceRatingOrderBtn']"));
-                            // click to bounce the ad.
-                            bounceElem.Click();
-                        }
-                        return tableElement;
+                        //    driver.SwitchTo().Frame(1);
+                        //    // find the ad bounce link
+                        //    var bounceElem = driver.FindElement(By.XPath("//*[@id='bounceRatingOrderBtn']"));
+                        //    // click to bounce the ad.
+                        //    bounceElem.Click();
+                        //} 
+                        #endregion
+                        return bounceButton;
                     }
                     return null;
                 });
